@@ -11,20 +11,26 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'asdfdsafsa341243kj;lajrfjpip install -U Flask-SQLAlchemy' 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 db.init_app(app)
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+
+
 engine = create_engine('sqlite:////path/to/sqlite3.db')
-class Post(db.Model):
-    __tablename__ = 'posts'
+
+
+class User(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     email = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
+
     
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'asdfdsafsa341243kj;lajrfjpip install -U Flask-SQLAlchemy' 
+with app.app_context():
+    db.create_all()
+
 
 @app.route('/')
 def home():
@@ -63,7 +69,10 @@ def page1():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        return 'Форма отправлена'
+        new_user = User(email=form.email.data, password=form.password.data)
+        db.session.add(new_user)
+        db.session.commit()
+        return 'Пользователь добавлен в базу'
     return render_template("register.html", form=form)
 @app.route("/sign_in", methods=["POST", "GET"])
 def login():
