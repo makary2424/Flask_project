@@ -4,6 +4,7 @@ from forms import LogInForm
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import  create_engine
+from flask_bcrypt import Bcrypt
 import sqlite3
 
 class Base(DeclarativeBase):
@@ -13,6 +14,7 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'asdfdsafsa341243kj;lajrfjpip install -U Flask-SQLAlchemy' 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+bcrypt = Bcrypt(app)
 db.init_app(app)
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -24,7 +26,7 @@ engine = create_engine('sqlite:////path/to/sqlite3.db')
 
 class User(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    email = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
 
     
@@ -69,7 +71,8 @@ def page1():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        new_user = User(email=form.email.data, password=form.password.data)
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        new_user = User(email=form.email.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         return 'Пользователь добавлен в базу'
