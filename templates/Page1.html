@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block title %}Страница 1{% endblock %}
+{% block content %} 
+<h1>Наши филиалы:</h1>
+    {% for point in points %}
+    {{ point["point"] }} {{ point["metro"] }} <br>
+    {% endfor %}
+{% endblock %}
+    
+    

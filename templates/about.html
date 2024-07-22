@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block title %}О нас{% endblock %}
+{% block content %} 
+<h1>О нас</h1>
+        Сайт создали Виктор и Макарий
+        <h1>Наши услуги:</h1>
+        {% for service in services %}
+        {{ service["name"] }} {{ service["price"] }} <br>
+        {% endfor %}
+
+        <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A8b8db6d78043e86d308e9a7bb016244b339e7ef204e5230f05eb5d3cbb878413&amp;width=100%25&amp;height=400&amp;lang=ru_RU&amp;scroll=true"></script>
+{% endblock %}
+
+
+
