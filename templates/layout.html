@@ -34,6 +34,9 @@
               </div>
             </div>
           </nav>
+        {% for message in get_flashed_messages() %}
+        <div class="text-bg-primary info">{{message}}</div>
+        {% endfor %}
         {% block content %} {% endblock %}
     </div>
 </body>

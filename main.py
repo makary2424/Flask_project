@@ -1,11 +1,43 @@
-from flask import Flask, render_template, request
-from forms import RegisterForm
-from forms import LogInForm
+from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import  create_engine
 from flask_bcrypt import Bcrypt
 import sqlite3
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+
+
+def have_digit(form, field):
+    if not any([sym.isdigit() for sym in field.data]):
+        raise ValidationError('Пароль должен содержать цифры')
+def have_lower(form, field):
+    if not any([sym.islower() for sym in field.data]):
+        raise ValidationError("Пароль должен содержать маленькие буквы") 
+def have_upper(form, field):
+    if not any([sym.isupper() for sym in field.data]):
+        raise ValidationError("Пароль должен содержать большие буквы")
+    
+def email_enable(form, email):
+    user = User.query.filter_by(email=email.data).first()
+    if user:
+        raise ValidationError('Данный email адрес уже занят!')
+
+
+class RegisterForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email(), email_enable])
+    password = PasswordField('password', validators=[DataRequired(), Length(min=6), have_digit, have_lower, have_upper])
+    confirm = PasswordField('confirm', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Отправить')
+
+
+class LogInForm(FlaskForm):
+    email = StringField("Email: ", validators=[DataRequired(), Email()])
+    password = PasswordField("Password", validators=[DataRequired(), Length(min=6), have_digit, have_lower, have_upper])
+    submit = SubmitField("LogIn")
+
 
 class Base(DeclarativeBase):
   pass
@@ -75,13 +107,23 @@ def register():
         new_user = User(email=form.email.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        return 'Пользователь добавлен в базу'
+        flash('Пользователь добавлен в базу', 'success')
+        return redirect(url_for('login'))
+        
     return render_template("register.html", form=form)
 @app.route("/sign_in", methods=["POST", "GET"])
 def login():
     form = LogInForm()
     if form.validate_on_submit():
-        return f'Вы вошли как {form.email.data}'
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                return f'Вы вошли как {form.email.data}'
+            else:
+                flash('Неверный пароль')
+        else:
+            flash('Пользователь с таки email не найден')
+        
     return render_template("login.html", form=form)
     
     

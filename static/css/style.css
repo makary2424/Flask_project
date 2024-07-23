@@ -6,3 +6,8 @@ h1{
     width: 500px;
     margin: 10px auto;
 }
+
+.info{
+    padding: 10px;
+    border-radius: 5px;
+}
