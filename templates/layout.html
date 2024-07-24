@@ -28,7 +28,11 @@
                     <a class="nav-link" href="{{url_for('page1')}}">филиалы </a>
                   </li>
                   <li class="nav-item">
+                    {% if not session['email'] %}
                     <a class="nav-link" href="{{url_for('register')}}">Регистрация </a>
+                    {% else %}
+                    <a class="nav-link" href="{{url_for('logout')}}">Выйти ({{session['email']}})</a>
+                    {% endif %}
                   </li>
                 </ul>
               </div>

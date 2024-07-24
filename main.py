@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import  create_engine
@@ -118,15 +118,21 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
-                return f'Вы вошли как {form.email.data}'
+                session['email'] = form.email.data
+                flash(f'Вы вошли как {form.email.data}')
+                return redirect(url_for('home'))
             else:
                 flash('Неверный пароль')
         else:
-            flash('Пользователь с таки email не найден')
+            flash('Пользователь с таким email не найден')
         
     return render_template("login.html", form=form)
-    
-    
+
+@app.route("/log_out")
+def logout():
+    session.pop('email', None)
+    return redirect(url_for('home'))
+
 
 
 
