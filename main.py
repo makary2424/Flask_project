@@ -3,11 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import  create_engine
 from flask_bcrypt import Bcrypt
-import sqlite3
-
+from flask_login import login_user, current_user, logout_user, login_required, UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from flask_login import LoginManager
 
 
 def have_digit(form, field):
@@ -48,6 +48,8 @@ app.config['SECRET_KEY'] = 'asdfdsafsa341243kj;lajrfjpip install -U Flask-SQLAlc
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 bcrypt = Bcrypt(app)
 db.init_app(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -56,7 +58,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 engine = create_engine('sqlite:////path/to/sqlite3.db')
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer(), primary_key=True)
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
@@ -87,6 +89,7 @@ def about():
     ]
     return render_template("about.html", services=services)
 @app.route("/page1")
+@login_required
 def page1():
     points = [
         {
@@ -118,9 +121,10 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
-                session['email'] = form.email.data
-                flash(f'Вы вошли как {form.email.data}')
-                return redirect(url_for('home'))
+                login_user(user)
+                next = request.args.get('next')
+                flash(f'Вы вошли как {current_user.email}')
+                return redirect(next or url_for('home'))
             else:
                 flash('Неверный пароль')
         else:
@@ -128,9 +132,16 @@ def login():
         
     return render_template("login.html", form=form)
 
+
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 @app.route("/log_out")
 def logout():
-    session.pop('email', None)
+    logout_user()
     return redirect(url_for('home'))
 
 
