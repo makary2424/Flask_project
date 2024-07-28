@@ -38,6 +38,11 @@ class LogInForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired(), Length(min=6), have_digit, have_lower, have_upper])
     submit = SubmitField("LogIn")
 
+class TaskForm(FlaskForm):
+    question = StringField("question", validators=[DataRequired()])
+    answer = StringField("answer", validators=[DataRequired()])
+    submit = SubmitField("submit")
+
 
 class Base(DeclarativeBase):
   pass
@@ -63,7 +68,12 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
 
-    
+class Question(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    question = db.Column(db.String(999), nullable=False)
+    answer = db.Column(db.String(199), nullable=False)
+
+
 with app.app_context():
     db.create_all()
 
@@ -144,7 +154,30 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+@app.route("/tasks")
+def tasks():
+    tasks=Question.query.all()
+    return render_template("tasks.html", tasks=tasks)
+    
+@app.route('/task/create', methods=["POST", "GET"])
+def create_task():
+    form_in_main = TaskForm()
+    if form_in_main.validate_on_submit():
+        new_question = Question(question=form_in_main.question.data,answer=form_in_main.answer.data)
+        db.session.add(new_question)
+        db.session.commit()
+        return redirect(url_for('tasks'))
 
+    return render_template('create_task.html', form_in_template=form_in_main)
+
+
+@app.route('/check_answer', methods=['GET', 'POST'])
+def check_answer():
+    # task_id = request.form['task_id']
+    # guess = request.form['answer']
+    # task = Question.query.get(task_id)
+    # return guess.lower() == task.answer.lower()
+    return 5
 
 
 

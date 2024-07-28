@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}Вопросы{% endblock %}
+{% block content %}
+<script>
+  function check_answer() {
+    $.ajax({
+          type: "POST",
+          url: "/check_answer",
+          data: $('form').serialize(),
+          type: 'POST',
+          success: function(response) {
+              // var json = jQuery.parseJSON(response)
+              // $('#len').html(json.len)
+              console.log(response);
+          },
+          error: function(error) {
+              console.log(error);
+          }
+      });
+  }
+</script>
+<h1>Вопросы</h1>
+  {% for task in tasks %}
+    <div class="card">
+      <h2>Вопрос № {{loop.index}}</h2>
+      <p>
+        {{task['question']}}
+      </p>
+      <form method='POST' action="/check_answer" name="form">
+      <div class="row">
+        <div class="col-md-8">
+          <input type="hidden" name="task_id" value="{{task.id}}">
+        </div>
+        <div class="col-md-2">
+          <input type="value" class="answer-field form-control" name="answer">
+        </div>
+        <div class="col-md-2">
+          <input type="button" value="Ответить" class=" answer-btn btn btn-primary" onclick=check_answer()>
+        </div>
+      </form>
+      </div>
+    </div>
+
+    
+  {% endfor %}
+
+
+{% endblock %}
