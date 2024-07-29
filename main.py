@@ -173,13 +173,14 @@ def create_task():
 
 @app.route('/check_answer', methods=['GET', 'POST'])
 def check_answer():
-    # task_id = request.form['task_id']
     # guess = request.form['answer']
-    # task = Question.query.get(task_id)
-    # return guess.lower() == task.answer.lower()
-    return 5
+    # return guess
+    if request.method == "POST":
+        task_id = request.form['task_id']
+        cor_answer = Question.query.get(int(task_id)).answer
+        quess = request.form['answer']
+        return str(cor_answer.lower()==quess.lower())
 
 
 
-
-app.run(debug=True)
+app.run(debug = True)

@@ -2,15 +2,19 @@
 {% block title %}Вопросы{% endblock %}
 {% block content %}
 <script>
-  function check_answer() {
+  function check_answer(el) {
     $.ajax({
           type: "POST",
           url: "/check_answer",
-          data: $('form').serialize(),
-          type: 'POST',
+          data: jQuery(el).closest('form').serialize(),
           success: function(response) {
-              // var json = jQuery.parseJSON(response)
-              // $('#len').html(json.len)
+              if (response == 'True'){
+                jQuery(el).closest('.card').css({"backgroundColor":"green"})
+              }
+              else{
+                jQuery(el).closest('.card').css({"backgroundColor":"red"})
+              }
+
               console.log(response);
           },
           error: function(error) {
@@ -26,7 +30,7 @@
       <p>
         {{task['question']}}
       </p>
-      <form method='POST' action="/check_answer" name="form">
+      <form action="/check_answer" method='POST' name="form-{{task.id}}">
       <div class="row">
         <div class="col-md-8">
           <input type="hidden" name="task_id" value="{{task.id}}">
@@ -35,7 +39,7 @@
           <input type="value" class="answer-field form-control" name="answer">
         </div>
         <div class="col-md-2">
-          <input type="button" value="Ответить" class=" answer-btn btn btn-primary" onclick=check_answer()>
+          <input type="button" value="Ответить" class=" answer-btn btn btn-primary" onclick=check_answer(this)>
         </div>
       </form>
       </div>
