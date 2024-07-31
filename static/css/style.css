@@ -16,6 +16,7 @@ h1{
     padding: 15px;
     box-shadow: -1px 4px 7px -4px black;
     background-color: rgb(245, 245, 245);
+    user-select: none;
 }
 
 .card:hover{

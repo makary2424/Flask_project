@@ -9,10 +9,10 @@
           data: jQuery(el).closest('form').serialize(),
           success: function(response) {
               if (response == 'True'){
-                jQuery(el).closest('.card').css({"backgroundColor":"green"})
+                jQuery(el).closest('.card').css({"backgroundColor":"#48c548"})
               }
               else{
-                jQuery(el).closest('.card').css({"backgroundColor":"red"})
+                jQuery(el).closest('.card').css({"backgroundColor":"#ff7474"})
               }
 
               console.log(response);

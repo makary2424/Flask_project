@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <title>{% block title %} {% endblock %}</title>
 </head>
 <body>
@@ -28,13 +29,17 @@
                   <li class="nav-item">
                     <a class="nav-link" href="{{url_for('page1')}}">филиалы </a>
                   </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="{{url_for('create_task')}}">Добавить вопрос </a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="{{url_for('tasks')}}">Вопросы </a>
-                  </li>
 
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      Тесты
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                      <li><a class="dropdown-item" href="{{url_for('create_task')}}">Добавить вопрос</a></li>
+                      <li><a class="dropdown-item" href="{{url_for('tasks')}}">Вопросы</a></li>
+                     
+                    </ul>
+                  </li>
 
 
                   <li class="nav-item">
