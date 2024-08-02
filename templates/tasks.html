@@ -27,9 +27,9 @@
   {% for task in tasks %}
     <div class="card">
       <h2>Вопрос № {{loop.index}}</h2>
-      <p>
+          
         {{task['question']}}
-      </p>
+        <img src="/static/images/{{task['photo']}}" width="300" height="200">
       <form action="/check_answer" method='POST' name="form-{{task.id}}">
       <div class="row">
         <div class="col-md-8">

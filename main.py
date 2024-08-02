@@ -5,9 +5,10 @@ from sqlalchemy import  create_engine
 from flask_bcrypt import Bcrypt
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_login import LoginManager
+from werkzeug.utils import secure_filename
 
 
 def have_digit(form, field):
@@ -40,6 +41,7 @@ class LogInForm(FlaskForm):
 
 class TaskForm(FlaskForm):
     question = StringField("question", validators=[DataRequired()])
+    photo = FileField("photo", validators=[DataRequired()])
     answer = StringField("answer", validators=[DataRequired()])
     submit = SubmitField("submit")
 
@@ -49,6 +51,7 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = "static/images/uploads"
 app.config['SECRET_KEY'] = 'asdfdsafsa341243kj;lajrfjpip install -U Flask-SQLAlchemy' 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 bcrypt = Bcrypt(app)
@@ -57,6 +60,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 
 
@@ -71,11 +75,14 @@ class User(db.Model, UserMixin):
 class Question(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     question = db.Column(db.String(999), nullable=False)
+    photo = db.Column(db.String(999), nullable=False)
+    # Column заменить на Функцию для файла и убрать nullable
     answer = db.Column(db.String(199), nullable=False)
 
 
 with app.app_context():
     db.create_all()
+
 
 
 @app.route('/')
@@ -163,7 +170,7 @@ def tasks():
 def create_task():
     form_in_main = TaskForm()
     if form_in_main.validate_on_submit():
-        new_question = Question(question=form_in_main.question.data,answer=form_in_main.answer.data)
+        new_question = Question(question=form_in_main.question.data, photo=form_in_main.photo.data, answer=form_in_main.answer.data)
         db.session.add(new_question)
         db.session.commit()
         return redirect(url_for('tasks'))
