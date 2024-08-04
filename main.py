@@ -9,6 +9,8 @@ from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_login import LoginManager
 from werkzeug.utils import secure_filename
+import os
+os.getcwd()
 
 
 def have_digit(form, field):
@@ -171,11 +173,23 @@ def create_task():
     form_in_main = TaskForm()
     if form_in_main.validate_on_submit():
         new_question = Question(question=form_in_main.question.data, photo=form_in_main.photo.data, answer=form_in_main.answer.data)
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        file = request.files['photo']
+        filename = file.filename
+        file.save(os.path.join(basedir, "static", "images", filename))               
         db.session.add(new_question)
         db.session.commit()
         return redirect(url_for('tasks'))
 
     return render_template('create_task.html', form_in_template=form_in_main)
+
+@app.route('/task/delete/<task_id>')
+def delete_task(task_id):
+    flash(f'Вы удалили вопрос с id {task_id}')
+    question = Question.query.get(int(task_id))
+    db.session.delete(question)
+    db.session.commit()
+    return redirect(url_for('tasks'))
 
 
 @app.route('/check_answer', methods=['GET', 'POST'])
@@ -187,6 +201,7 @@ def check_answer():
         cor_answer = Question.query.get(int(task_id)).answer
         quess = request.form['answer']
         return str(cor_answer.lower()==quess.lower())
+
 
 
 

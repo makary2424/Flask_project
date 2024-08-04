@@ -2,6 +2,10 @@
 {% block title %}Вопросы{% endblock %}
 {% block content %}
 <script>
+
+// сперва формы нет и мы вешаем обработчик на контйнер (который уже присутствует)
+
+
   function check_answer(el) {
     $.ajax({
           type: "POST",
@@ -22,15 +26,25 @@
           }
       });
   }
+
+
+  $(document).ready(function() {
+    $("form").submit(function(e){
+    e.preventDefault();
+    });
+  });
 </script>
 <h1>Вопросы</h1>
   {% for task in tasks %}
     <div class="card">
-      <h2>Вопрос № {{loop.index}}</h2>
+      <h2>Вопрос № {{loop.index}} <a href="{{url_for('delete_task', task_id = task.id)}}">Удалить</a></h2>
           
         {{task['question']}}
-        <img src="/static/images/{{task['photo']}}" width="300" height="200">
-      <form action="/check_answer" method='POST' name="form-{{task.id}}">
+        {% if task.photo == None %}
+        {% else %}
+        <img src="/static/images/{{task['photo']}}" class="task-img" width="400" height="400">
+        {% endif %}
+      <form method='POST' name="form-{{task.id}}">
       <div class="row">
         <div class="col-md-8">
           <input type="hidden" name="task_id" value="{{task.id}}">
