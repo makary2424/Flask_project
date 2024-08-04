@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}Редактировать вопрос{% endblock %}
+{% block content %}
+<h1>Редактировать вопрос</h1>
+<form method="POST" enctype="multipart/form-data">
+  {{form_in_template.hidden_tag()}}
+  {{form_in_template.question.label(class='form-control-label')}}
+  {{form_in_template.question(class='form-control')}}
+  Change a file
+  {{form_in_template.photo(class="form-control")}}
+  {{form_in_template.answer.label(class='form-control-label')}}
+  {{form_in_template.answer(class="form-control")}}<br>
+  {{form_in_template.submit(class="btn btn-primary")}}
+</form>
+{% endblock %}

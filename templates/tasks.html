@@ -37,7 +37,7 @@
 <h1>Вопросы</h1>
   {% for task in tasks %}
     <div class="card">
-      <h2>Вопрос № {{loop.index}} <a href="{{url_for('delete_task', task_id = task.id)}}">Удалить</a></h2>
+      <h2>Вопрос № {{loop.index}} <a href="{{url_for('delete_task', task_id = task.id)}}">Удалить</a> <a href="{{url_for('edit_task', task_id = task.id)}}">Редактировать</a></h2>
           
         {{task['question']}}
         {% if task.photo == None %}

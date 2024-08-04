@@ -47,6 +47,12 @@ class TaskForm(FlaskForm):
     answer = StringField("answer", validators=[DataRequired()])
     submit = SubmitField("submit")
 
+class TaskEditForm(FlaskForm):
+    question = StringField("question", validators=[DataRequired()])
+    photo = FileField("photo", validators=[DataRequired()])
+    answer = StringField("answer", validators=[DataRequired()])
+    submit = SubmitField("submit")
+
 
 class Base(DeclarativeBase):
   pass
@@ -190,6 +196,46 @@ def delete_task(task_id):
     db.session.delete(question)
     db.session.commit()
     return redirect(url_for('tasks'))
+
+@app.route('/task/edit/id/<task_id>', methods=['GET', 'POST'])
+def edit_task_id():
+    
+    return redirect(url_for('edit_task'))
+    
+   
+@app.route('/task/edit', methods=['GET', 'POST'])
+def edit_task():
+    form_in_main = TaskEditForm()
+    task_id = request.args.get('task_id')
+    # question = Question.query.get(int(task_id)).answer
+    this_task = Question.query.get(int(task_id))
+    flash(f'Вы редактируете вопрос с {this_task.photo}')
+
+    
+
+    if form_in_main.validate_on_submit():      
+        this_task.question = form_in_main.question.data
+        file_storage = form_in_main.photo.data
+        filename = file_storage.filename
+        this_task.photo = filename
+        this_task.answer = form_in_main.answer.data
+        db.session.commit()
+        
+        flash(f'Вы редактируете вопрос с { filename}')
+        return redirect(url_for('tasks'))
+    return render_template('edit_task.html', form_in_template=form_in_main)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @app.route('/check_answer', methods=['GET', 'POST'])
