@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}Категории{% endblock %}
+{% block content %}
+
+<h1>Темы</h1>
+  <form method="POST">
+    {{form.hidden_tag()}}
+    {{form.name.label(class="form-control-label mb-3")}}
+    {{form.name(class="form-control mb-3")}}
+    {{form.submit(class="btn btn-primary mb-3")}}
+  </form>
+  {% if  topics %}
+    {% for topic in topics %}
+      <div><strong>{{topic.name}}</strong> <a href="{{topic.id}}">Удалить</a><a href="{{topic.id}}">Редактировать</a></div>
+    {% endfor %}
+  {% else %}
+  <strong>Создайте первую тему.</strong>
+  {% endif %}
+{% endblock %}

@@ -4,6 +4,8 @@
 <h1>Добавить вопрос</h1>
 <form method="POST" enctype="multipart/form-data">
   {{form_in_template.hidden_tag()}}
+  Тема теста. (Не обязательное поле.)
+  {{form_in_template.topic(class='form-control')}}
   {{form_in_template.question.label(class='form-control-label')}}
   {{form_in_template.question(class='form-control')}}
   If you want, you can add a file

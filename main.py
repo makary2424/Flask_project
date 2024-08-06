@@ -5,11 +5,13 @@ from sqlalchemy import  create_engine
 from flask_bcrypt import Bcrypt
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField
+from wtforms import StringField, PasswordField, SubmitField, FileField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_login import LoginManager
 from werkzeug.utils import secure_filename
 import os
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 os.getcwd()
 
 
@@ -28,6 +30,9 @@ def email_enable(form, email):
     if user:
         raise ValidationError('Данный email адрес уже занят!')
 
+class TopicForm(FlaskForm):
+    name = StringField('Категория', validators=[DataRequired(), Length(min=3, max=100)])
+    submit = SubmitField("Отправить")
 
 class RegisterForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email(), email_enable])
@@ -41,17 +46,17 @@ class LogInForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired(), Length(min=6), have_digit, have_lower, have_upper])
     submit = SubmitField("LogIn")
 
-class TaskForm(FlaskForm):
-    question = StringField("question", validators=[DataRequired()])
-    photo = FileField("photo", validators=[DataRequired()])
-    answer = StringField("answer", validators=[DataRequired()])
-    submit = SubmitField("submit")
+
 
 class TaskEditForm(FlaskForm):
     question = StringField("question", validators=[DataRequired()])
-    photo = FileField("photo", validators=[DataRequired()])
+    photo = FileField("photo")
     answer = StringField("answer", validators=[DataRequired()])
+    topic = StringField("topic")
     submit = SubmitField("submit")
+
+
+
 
 
 class Base(DeclarativeBase):
@@ -66,8 +71,18 @@ bcrypt = Bcrypt(app)
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+class Topic(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+
+class TaskForm(FlaskForm):
+    topics = Topic.query.all()
+    question = StringField("question", validators=[DataRequired()])
+    photo = FileField("photo", validators=[DataRequired()])
+    answer = StringField("answer", validators=[DataRequired()])
+    topic = SelectField("topics", choices=[(topic.id, topic.name) for topic in topics])
+    submit = SubmitField("submit")
+
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 
@@ -83,9 +98,11 @@ class User(db.Model, UserMixin):
 class Question(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     question = db.Column(db.String(999), nullable=False)
-    photo = db.Column(db.String(999), nullable=False)
-    # Column заменить на Функцию для файла и убрать nullable
+    photo = db.Column(db.String(999))
+    topic = db.Column(db.String(999))
     answer = db.Column(db.String(199), nullable=False)
+
+
 
 
 with app.app_context():
@@ -177,17 +194,21 @@ def tasks():
 @app.route('/task/create', methods=["POST", "GET"])
 def create_task():
     form_in_main = TaskForm()
+    topics = Topic.query.all()
     if form_in_main.validate_on_submit():
-        new_question = Question(question=form_in_main.question.data, photo=form_in_main.photo.data, answer=form_in_main.answer.data)
         basedir = os.path.abspath(os.path.dirname(__file__))
         file = request.files['photo']
         filename = file.filename
+        if str(form_in_main.topic.data) == "":
+             new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=None)
+        else:
+            new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=form_in_main.topic.data)
         file.save(os.path.join(basedir, "static", "images", filename))               
         db.session.add(new_question)
         db.session.commit()
         return redirect(url_for('tasks'))
 
-    return render_template('create_task.html', form_in_template=form_in_main)
+    return render_template('create_task.html', form_in_template=form_in_main, topics=topics)
 
 @app.route('/task/delete/<task_id>')
 def delete_task(task_id):
@@ -197,45 +218,25 @@ def delete_task(task_id):
     db.session.commit()
     return redirect(url_for('tasks'))
 
-@app.route('/task/edit/id/<task_id>', methods=['GET', 'POST'])
-def edit_task_id():
-    
-    return redirect(url_for('edit_task'))
-    
    
-@app.route('/task/edit', methods=['GET', 'POST'])
-def edit_task():
+@app.route('/task/edit/<task_id>', methods=['GET', 'POST'])
+def edit_task(task_id):
     form_in_main = TaskEditForm()
-    task_id = request.args.get('task_id')
-    # question = Question.query.get(int(task_id)).answer
     this_task = Question.query.get(int(task_id))
-    flash(f'Вы редактируете вопрос с {this_task.photo}')
-
-    
-
-    if form_in_main.validate_on_submit():      
+    if form_in_main.validate_on_submit():       
         this_task.question = form_in_main.question.data
-        file_storage = form_in_main.photo.data
-        filename = file_storage.filename
-        this_task.photo = filename
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        file = request.files['photo']
+        filename = file.filename
         this_task.answer = form_in_main.answer.data
+        if filename:
+            file.save(os.path.join(basedir, "static", "images", filename))
+            this_task.photo = filename
         db.session.commit()
-        
-        flash(f'Вы редактируете вопрос с { filename}')
         return redirect(url_for('tasks'))
+    form_in_main.question.data = this_task.question
+    form_in_main.answer.data = this_task.answer
     return render_template('edit_task.html', form_in_template=form_in_main)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @app.route('/check_answer', methods=['GET', 'POST'])
@@ -248,7 +249,16 @@ def check_answer():
         quess = request.form['answer']
         return str(cor_answer.lower()==quess.lower())
 
-
+@app.route('/topic/create', methods=['POST', 'GET'])
+def create_topic():
+    topic_form = TopicForm()
+    if topic_form.validate_on_submit():
+        new_topic = Topic(name=topic_form.name.data)
+        db.session.add(new_topic)
+        db.session.commit()
+        topic_form.name.data = None
+    topics = Topic.query.all()
+    return render_template('create_topic.html', topics=topics, form=topic_form)
 
 
 app.run(debug = True)

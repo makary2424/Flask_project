@@ -4,6 +4,8 @@
 <h1>Редактировать вопрос</h1>
 <form method="POST" enctype="multipart/form-data">
   {{form_in_template.hidden_tag()}}
+  Тема теста. (Не обязательное поле.)
+  {{form_in_template.topic(class='form-control')}}
   {{form_in_template.question.label(class='form-control-label')}}
   {{form_in_template.question(class='form-control')}}
   Change a file

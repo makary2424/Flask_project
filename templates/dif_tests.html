@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}Вопросы по теме{% endblock %}
+{% block content %}
+<script>
+
+  function check_answer(el) {
+    $.ajax({
+          type: "POST",
+          url: "/check_answer",
+          data: jQuery(el).closest('form').serialize(),
+          success: function(response) {
+              if (response == 'True'){
+                jQuery(el).closest('.card').css({"backgroundColor":"#48c548"})
+              }
+              else{
+                jQuery(el).closest('.card').css({"backgroundColor":"#ff7474"})
+              }
+
+              console.log(response);
+          },
+          error: function(error) {
+              console.log(error);
+          }
+      });
+  }
+
+
+  $(document).ready(function() {
+    $("form").submit(function(e){
+    e.preventDefault();
+    });
+  });
+</script>
+<h1>Вопросы</h1>
+  {% for task in tasks %}
+    <div class="card">
+      <h2>Вопрос № {{loop.index}}  <a href="{{url_for('delete_task', task_id = task.id)}}"><img src="/static/images/delete.png" width="40" height="38"></a> <a href="{{url_for('edit_task', task_id = task.id)}}"><img src="/static/images/Edit.png" width="40" height="40"></a></h2>
+          
+        {{task['question']}}
+        {% if task.photo == None %}
+        {% else %}
+        <img src="/static/images/{{task['photo']}}" class="task-img" width="400" height="400">
+        {% endif %}
+      <form method='POST' name="form-{{task.id}}">
+      <div class="row">
+        <div class="col-md-8">
+          <input type="hidden" name="task_id" value="{{task.id}}">
+        </div>
+        <div class="col-md-2">
+          <input type="value" class="answer-field form-control" name="answer">
+        </div>
+        <div class="col-md-2">
+          <input type="button" value="Ответить" class=" answer-btn btn btn-primary" onclick=check_answer(this)>
+        </div>
+      </form>
+      </div>
+    </div>
+
+    
+  {% endfor %}
+{% endblock %}
