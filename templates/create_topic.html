@@ -11,7 +11,12 @@
   </form>
   {% if  topics %}
     {% for topic in topics %}
-      <div><strong>{{topic.name}}</strong> <a href="{{topic.id}}">Удалить</a><a href="{{topic.id}}">Редактировать</a></div>
+    <div><strong>{{topic.name}}</strong></a>
+    <a href="{{url_for('delete_topic', topic_id = topic.id)}}"><img src="/static/images/delete.png" width="20" height="19"></a>
+    <a href="{{url_for('edit_topic', topic_id = topic.id)}}"><img src="/static/images/Edit.png" width="20" height="20"></a>
+    </div>
+    
+    
     {% endfor %}
   {% else %}
   <strong>Создайте первую тему.</strong>

@@ -71,24 +71,21 @@ bcrypt = Bcrypt(app)
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-class Topic(db.Model):
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(250), nullable=False)
-
-class TaskForm(FlaskForm):
-    topics = Topic.query.all()
-    question = StringField("question", validators=[DataRequired()])
-    photo = FileField("photo", validators=[DataRequired()])
-    answer = StringField("answer", validators=[DataRequired()])
-    topic = SelectField("topics", choices=[(topic.id, topic.name) for topic in topics])
-    submit = SubmitField("submit")
-
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
-
-
-
 engine = create_engine('sqlite:////path/to/sqlite3.db')
 
+class Topic(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    # name = db.Column(db.String(250), nullable=False)
+    name = db.Column(db.String(250))
+    
+
+class TaskForm(FlaskForm):
+    question = StringField("question", validators=[DataRequired()])
+    photo = FileField("photo")
+    answer = StringField("answer", validators=[DataRequired()])
+    topic = SelectField("topic")
+    submit = SubmitField("submit")
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer(), primary_key=True)
@@ -186,29 +183,46 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route("/tasks")
-def tasks():
-    tasks=Question.query.all()
+@app.route("/tasks",defaults={'topic_id': None})
+@app.route("/tasks/<topic_id>")
+def tasks(topic_id):
+    if topic_id is None:
+        tasks=Question.query.all()
+    else:
+        tasks=Question.query.filter_by(topic=str(topic_id)).all()
     return render_template("tasks.html", tasks=tasks)
     
 @app.route('/task/create', methods=["POST", "GET"])
 def create_task():
     form_in_main = TaskForm()
-    topics = Topic.query.all()
+    form_in_main.topic.choices = [(str(topic.id), topic.name) for topic in Topic.query.all()]
     if form_in_main.validate_on_submit():
         basedir = os.path.abspath(os.path.dirname(__file__))
-        file = request.files['photo']
-        filename = file.filename
-        if str(form_in_main.topic.data) == "":
-             new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=None)
+        filename = None
+        if 'photo' in request. files:
+            file = request.files['photo']
+            filename = file.filename
+            if filename != '':               
+                file.save(os.path.join(basedir, "static", "images", filename))
+        if filename:   
+            
+            if str(form_in_main.topic.data) == "":
+                new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=None)
+            else:
+                new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=form_in_main.topic.data)
+        
+        
         else:
-            new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=form_in_main.topic.data)
-        file.save(os.path.join(basedir, "static", "images", filename))               
+            if str(form_in_main.topic.data) == "":
+                new_question = Question(question=form_in_main.question.data, answer=form_in_main.answer.data, topic=None)
+            else:
+                new_question = Question(question=form_in_main.question.data, answer=form_in_main.answer.data, topic=form_in_main.topic.data)               
         db.session.add(new_question)
         db.session.commit()
         return redirect(url_for('tasks'))
+    return render_template('create_task.html', form_in_template=form_in_main)
 
-    return render_template('create_task.html', form_in_template=form_in_main, topics=topics)
+
 
 @app.route('/task/delete/<task_id>')
 def delete_task(task_id):
@@ -218,17 +232,36 @@ def delete_task(task_id):
     db.session.commit()
     return redirect(url_for('tasks'))
 
-   
+@app.route('/topic/delete/<topic_id>')
+def delete_topic(topic_id):
+    flash(f'Вы удалили тему с id {topic_id}')
+    topic = Topic.query.get(int(topic_id))
+    db.session.delete(topic)
+    db.session.commit()
+    return redirect(url_for('create_topic'))
+
+@app.route("/topic/edit/<topic_id>")
+def edit_topic(topic_id):
+    form_in_main = TopicForm()
+    this_topic = Topic.query.get(int(topic_id))
+    if form_in_main.validate_on_submit():
+        this_topic.topic = form_in_main.name.data
+        db.session.commit()
+        return redirect(url_for('tasks'))
+    form_in_main.name.data = this_topic.name
+    return render_template('create_topic.html', form_in_template=form_in_main)
+
 @app.route('/task/edit/<task_id>', methods=['GET', 'POST'])
 def edit_task(task_id):
     form_in_main = TaskEditForm()
     this_task = Question.query.get(int(task_id))
-    if form_in_main.validate_on_submit():       
-        this_task.question = form_in_main.question.data
+    if form_in_main.validate_on_submit():            
         basedir = os.path.abspath(os.path.dirname(__file__))
         file = request.files['photo']
         filename = file.filename
+        this_task.question = form_in_main.question.data
         this_task.answer = form_in_main.answer.data
+        this_task.topic = form_in_main.topic.data
         if filename:
             file.save(os.path.join(basedir, "static", "images", filename))
             this_task.photo = filename
@@ -236,6 +269,7 @@ def edit_task(task_id):
         return redirect(url_for('tasks'))
     form_in_main.question.data = this_task.question
     form_in_main.answer.data = this_task.answer
+    form_in_main.topic.data = this_task.topic
     return render_template('edit_task.html', form_in_template=form_in_main)
 
 
