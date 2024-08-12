@@ -76,11 +76,10 @@ class Topic(db.Model):
     name = db.Column(db.String(250), nullable=False)
 
 class TaskForm(FlaskForm):
-    topics = Topic.query.all()
     question = StringField("question", validators=[DataRequired()])
-    photo = FileField("photo", validators=[DataRequired()])
+    photo = FileField("photo")
     answer = StringField("answer", validators=[DataRequired()])
-    topic = SelectField("topics", choices=[(topic.id, topic.name) for topic in topics])
+    topic = SelectField("topics")
     submit = SubmitField("submit")
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -186,15 +185,25 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route("/tasks")
-def tasks():
-    tasks=Question.query.all()
+@app.route("/tasks", defaults={'topic_id':None})
+@app.route("/tasks/<topic_id>")
+def tasks(topic_id):
+    if topic_id != None:
+        tasks=Question.query.filter_by(topic=topic_id)
+    else:
+        tasks =Question.query.all()
     return render_template("tasks.html", tasks=tasks)
     
 @app.route('/task/create', methods=["POST", "GET"])
 def create_task():
     form_in_main = TaskForm()
+
     topics = Topic.query.all()
+    options = []
+    for topic in topics:
+        options.append((topic.id, topic.name))
+    form_in_main.topic.choices = options
+    
     if form_in_main.validate_on_submit():
         basedir = os.path.abspath(os.path.dirname(__file__))
         file = request.files['photo']
