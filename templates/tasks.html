@@ -37,12 +37,7 @@
 <h1>Вопросы</h1>
   {% for task in tasks %}
     <div class="card">
-      <h2>Вопрос № {{loop.index}}  ({{task.topic.name}})<a href="{{url_for('delete_task', task_id = task.id)}}"><img src="/static/images/delete.png" width="40" height="38"></a> <a href="{{url_for('edit_task', task_id = task.id)}}"><img src="/static/images/Edit.png" width="40" height="40"></a></h2>
-          {%for qestion in task.topic.questions %}
-          <div>
-            {{qestion.question}}
-          </div>
-          {%endfor%}
+      <h2>Вопрос № {{loop.index}} <a href="{{url_for('tasks', topic_id = task.topic.id)}}"><img src="/static/images/clip_icon.png" width="32" height="32"></a>   <a href="{{url_for('delete_task', task_id = task.id)}}"><img src="/static/images/delete.png" width="40" height="38"></a> <a href="{{url_for('edit_task', task_id = task.id)}}"><img src="/static/images/Edit.png" width="40" height="40"></a></h2>
         <!-- {{task['question']}} -->
         {% if task.photo == None %}
         {% else %}
