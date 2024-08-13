@@ -71,9 +71,7 @@ bcrypt = Bcrypt(app)
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-class Topic(db.Model):
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(250), nullable=False)
+
 
 class TaskForm(FlaskForm):
     question = StringField("question", validators=[DataRequired()])
@@ -98,10 +96,13 @@ class Question(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     question = db.Column(db.String(999), nullable=False)
     photo = db.Column(db.String(999))
-    topic = db.Column(db.String(999))
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
     answer = db.Column(db.String(199), nullable=False)
 
-
+class Topic(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    questions = db.relationship('Question', backref='topic', lazy=True)
 
 
 with app.app_context():
@@ -189,7 +190,7 @@ def logout():
 @app.route("/tasks/<topic_id>")
 def tasks(topic_id):
     if topic_id != None:
-        tasks=Question.query.filter_by(topic=topic_id)
+        tasks=Question.query.filter_by(topic_id=topic_id)
     else:
         tasks =Question.query.all()
     return render_template("tasks.html", tasks=tasks)
@@ -208,10 +209,7 @@ def create_task():
         basedir = os.path.abspath(os.path.dirname(__file__))
         file = request.files['photo']
         filename = file.filename
-        if str(form_in_main.topic.data) == "":
-             new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=None)
-        else:
-            new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic=form_in_main.topic.data)
+        new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic_id=form_in_main.topic.data)
         file.save(os.path.join(basedir, "static", "images", filename))               
         db.session.add(new_question)
         db.session.commit()
