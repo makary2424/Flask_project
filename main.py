@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 import os
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+from random import shuffle
 os.getcwd()
 
 
@@ -189,11 +190,14 @@ def logout():
 @app.route("/tasks", defaults={'topic_id':None})
 @app.route("/tasks/<topic_id>")
 def tasks(topic_id):
+    topics = Topic.query.all()
     if topic_id != None:
-        tasks=Question.query.filter_by(topic_id=topic_id)
+        tasks=Question.query.filter_by(topic_id=topic_id).all()
     else:
-        tasks =Question.query.all()
-    return render_template("tasks.html", tasks=tasks)
+        tasks=Question.query.all()
+    shuffle(tasks)
+    return render_template("tasks.html", tasks=tasks[0:4], topics=topics)
+
     
 @app.route('/task/create', methods=["POST", "GET"])
 def create_task():
@@ -207,10 +211,16 @@ def create_task():
     
     if form_in_main.validate_on_submit():
         basedir = os.path.abspath(os.path.dirname(__file__))
-        file = request.files['photo']
-        filename = file.filename
-        new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic_id=form_in_main.topic.data)
-        file.save(os.path.join(basedir, "static", "images", filename))               
+        filename = None
+        if request.files['photo']:
+            file = request.files['photo']
+            filename = file.filename
+            if filename != '':
+                file.save(os.path.join(basedir, "static", "images", filename))    
+        if filename:
+            new_question = Question(question=form_in_main.question.data, photo=filename, answer=form_in_main.answer.data, topic_id=form_in_main.topic.data)
+        else:
+            new_question = Question(question=form_in_main.question.data, answer=form_in_main.answer.data, topic_id=form_in_main.topic.data)           
         db.session.add(new_question)
         db.session.commit()
         return redirect(url_for('tasks'))
