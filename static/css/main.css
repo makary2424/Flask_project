@@ -1,7 +1,10 @@
-body{
-    color: aqua;
-}
+
 
 .error{
     color: red;
+}
+
+
+.card{
+    background-color: tomato !important;
 }
