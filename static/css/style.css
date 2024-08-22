@@ -18,6 +18,7 @@ h1{
     background-color: rgb(245, 245, 245);
     user-select: none;
     display: block !important;
+    
 }
 
 .card:hover{

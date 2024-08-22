@@ -35,22 +35,28 @@
   });
 </script>
 <h1>Вопросы</h1> 
-<!-- <li class="nav-item dropdown"></li> -->
-  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Тесты
-  </a>
-  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-    {% for topic in topics %}
-      <li><a class="dropdown-item" href="{{url_for('tasks', topic_id = topic.id)}}">{{ topic.name }}</a></li>
-    {% endfor %}
-  </ul>
+<div class="row">
+  <div class="col-md-6">
+      <select name="" id="" class="form-control">
+        {% for topic in topics %}
+          <option value="{{topic.id}}">{{ topic.name }}</option>
+        {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+      <input type="text" class="form-control"><input type="button" value="Ответить" class=" answer-btn btn btn-primary" onclick=check_answer(this)>
+  </div>
+</div>
+
+
 
   {% for task in tasks %}
     <div class="card">
-      <h2>№ {{loop.index}} <a href="{{url_for('tasks', topic_id = task.topic.id)}}"><img src="/static/images/clip_icon.png" width="32" height="32"></a>
+      <h2>№ {{loop.index}}        
                                   <a href="{{url_for('delete_task', task_id = task.id)}}"><img src="/static/images/delete.png" width="40" height="38"></a>
                                   <a href="{{url_for('edit_task', task_id = task.id)}}"><img src="/static/images/Edit.png" width="40" height="40"></a>
-                                  <img src="/static/images/info_icon.png" width="32" height="32"></a></h2>
+                                  <img src="/static/images/info_icon.png" width="32" height="32"></a>
+                                  <a href="{{url_for('tasks', topic_id = task.topic.id)}}" style="color: rgb(0, 0, 0)">#{{ task.topic.id }}</a></h2>
         {{task['question']}}
         {% if task.photo == None %}
         {% else %}
