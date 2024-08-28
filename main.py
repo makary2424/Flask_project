@@ -187,15 +187,32 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route("/tasks", defaults={'topic_id':None})
-@app.route("/tasks/<topic_id>")
-def tasks(topic_id):
+@app.route("/tasks_search", methods=['GET', 'POST'])
+def task_search():
+    topics = Topic.query.all()
+    if 'task_id' in request.form:
+        task_id = int(request.form['task_id'])
+        task = Question.query.get(task_id)
+        return render_template("tasks.html", tasks=[task], topics=topics)
+    
+    if "task_topic" in request.form:
+        task_topic = int(request.form["task_topic"])
+        tasks = Topic.query.get(task_topic).questions
+        return render_template("tasks.html", tasks=tasks, topics=topics)
+  
+    
+
+
+
+@app.route("/tasks", defaults={'topic_id':None}, methods=['GET', 'POST'])
+@app.route("/tasks/<topic_id>", methods=['GET', 'POST'])
+def tasks(topic_id):    
     topics = Topic.query.all()
     if topic_id != None:
         tasks=Question.query.filter_by(topic_id=topic_id).all()
     else:
         tasks=Question.query.all()
-    shuffle(tasks)
+    shuffle(tasks)            
     return render_template("tasks.html", tasks=tasks[0:4], topics=topics)
 
     

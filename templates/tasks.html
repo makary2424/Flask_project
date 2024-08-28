@@ -11,7 +11,7 @@
           type: "POST",
           url: "/check_answer",
           data: jQuery(el).closest('form').serialize(),
-          success: function(response) {
+          success: function(response){
               if (response == 'True'){
                 jQuery(el).closest('.card').css({"backgroundColor":"#48c548"})
               }
@@ -26,27 +26,78 @@
           }
       });
   }
+  function sort_by_topic(el){
+    $.ajax({
+      type: "POST",
+      url: "/tasks_search",
+      data: jQuery(el).closest('form').serialize(),
+      success: function(response){
+        alert("Кнопка работает " + response)
+        console.log(response);    
+      },
+      error: function(error) {
+      console.log(error);
+      alert("Ошибка");
+      }
+
+    });
+  }
 
 
   $(document).ready(function() {
-    $("form").submit(function(e){
+    $(".card form").submit(function(e){
     e.preventDefault();
     });
   });
+  
 </script>
 <h1>Вопросы</h1> 
+
+
+
 <div class="row">
+ 
   <div class="col-md-6">
-      <select name="" id="" class="form-control">
-        {% for topic in topics %}
-          <option value="{{topic.id}}">{{ topic.name }}</option>
-        {% endfor %}
-    </select>
+      <form method='POST'>
+        <p>Поиск заданий по категории:</p>
+        <div class="row">
+          <div class="col-md-8">
+            <select name="task_topic" id="" class="form-control">
+              {% for topic in topics %}
+                <option value="{{topic.id}}">{{ topic.name }}</option>
+              {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <input type="submit" value="Найти задания" class="fill answer-btn btn btn-primary"> 
+        </div>
+        </div>
+          
+          
+      </form>
   </div>
-  <div class="col-md-4">
-      <input type="text" class="form-control"><input type="button" value="Ответить" class=" answer-btn btn btn-primary" onclick=check_answer(this)>
+  
+  <div class="col-md-6">
+    <form method="POST" action="{{url_for('task_search')}}">
+      <p>Поиск заданий по id:</p>
+      <div class="row">
+              <div class="col-md-8">     
+                <input type="text" class="form-control" name="task_id">
+              </div>
+            <div class="col-md-4">
+                <input type="submit" value="Найти задание" class="fill answer-btn btn btn-primary">
+                
+            </div>
+      </div>
+      
+    </form>
   </div>
+    
+
+
 </div>
+
+
 
 
 
